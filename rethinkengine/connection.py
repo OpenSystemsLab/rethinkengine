@@ -1,5 +1,7 @@
 import rethinkdb as r
 
+__all__ = ['ConnectionError', 'connect', 'register_connection',
+           'DEFAULT_CONNECTION_NAME']
 
 DEFAULT_DATABASE_NAME = 'default'
 
@@ -14,6 +16,8 @@ class ConnectionError(Exception):
 # Shorthand function to fall back on either the last used db, or default
 get_alias = lambda d: d or _active_alias or DEFAULT_DATABASE_NAME
 
+
+def register_connection()
 
 def connect(db=None, alias=None, host='localhost', port=28015, auth_key=''):
     global _connections

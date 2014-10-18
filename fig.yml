@@ -1,0 +1,9 @@
+db:
+  image: dockerfile/rethinkdb
+vm:
+  build: .
+  command: python setup.py test
+  volumes:
+    - .:/code
+  links:
+    - db
