@@ -1,7 +1,5 @@
 import rethinkdb as r
 
-__all__ = ['ConnectionError', 'connect', 'register_connection',
-           'DEFAULT_CONNECTION_NAME']
 
 DEFAULT_DATABASE_NAME = 'default'
 
@@ -17,8 +15,6 @@ class ConnectionError(Exception):
 get_alias = lambda d: d or _active_alias or DEFAULT_DATABASE_NAME
 
 
-def register_connection()
-
 def connect(db=None, alias=None, host='localhost', port=28015, auth_key=''):
     global _connections
     global _active_alias
@@ -32,12 +28,13 @@ def connect(db=None, alias=None, host='localhost', port=28015, auth_key=''):
                                             auth_key=auth_key)
         except r.RqlDriverError:
             raise ConnectionError('Could not connect to %s:%d/%s' %
-                (host, port, db))
+                                  (host, port, db))
         if db not in db_list(alias):
             db_create(db, alias)
         _connections[alias].use(db)
         _active_alias = alias
     return _connections[alias]
+
 
 def disconnect(alias=None):
     global _connections
@@ -49,6 +46,7 @@ def disconnect(alias=None):
     _active_alias = None
     del _connections[alias]
 
+
 def get_conn(alias=None):
     global _connections
     alias = get_alias(alias)
@@ -56,13 +54,16 @@ def get_conn(alias=None):
         raise ConnectionError('No such connection')
     return connect(alias=alias)
 
+
 def db_list(alias=None):
     return r.db_list().run(get_conn(alias))
+
 
 def db_create(db, alias=None):
     alias = alias or db
     conn = get_conn(alias)
     r.db_create(db).run(conn)
+
 
 def db_drop(db, alias=None):
     alias = alias or db

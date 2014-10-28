@@ -5,7 +5,7 @@ except ImportError:
 
 from rethinkengine.connection import get_conn
 from rethinkengine.fields import BaseField, PrimaryKeyField
-from rethinkengine.query_set import QuerySet, QuerySetManager, DoesNotExist, \
+from rethinkengine.query_set import QuerySetManager, DoesNotExist, \
     MultipleObjectsReturned
 
 import inspect
@@ -26,8 +26,8 @@ class Meta(object):
 
 
 class BaseDocument(type):
-    def __new__(cls, name, bases, attrs):
-        new_class = super(BaseDocument, cls).__new__(cls, name, bases, attrs)
+    def __new__(mcs, name, bases, attrs):
+        new_class = super(BaseDocument, mcs).__new__(mcs, name, bases, attrs)
 
         # If new_class is of type Document, return straight away
         if object in new_class.__bases__:
@@ -37,9 +37,9 @@ class BaseDocument(type):
         fields = sorted(
             inspect.getmembers(
                 new_class,
-                lambda o:isinstance(o, BaseField)
+                lambda o: isinstance(o, BaseField)
             ),
-            key=lambda i:i[1]._creation_order)
+            key=lambda i: i[1]._creation_order)
         new_class._fields = attrs.get('_fields', OrderedDict())
         new_class._fields['pk'] = PrimaryKeyField()
         for field_name, field in fields:
@@ -60,7 +60,7 @@ class BaseDocument(type):
         meta_data = {}
         if hasattr(new_class, m_name):
             meta_data = dict([(k, getattr(new_class.Meta, k)) for k in
-                dir(new_class.Meta) if not k.startswith('_')])
+                              dir(new_class.Meta) if not k.startswith('_')])
 
         # Merge Meta class and set user defined data
         meta = type(m_name, (Meta,), {'__module__': name})
@@ -78,7 +78,7 @@ class BaseDocument(type):
 class Document(object):
     __metaclass__ = BaseDocument
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         super(Document, self).__init__()
         self.__dict__['_data'] = {}
         self.__dict__['_iter'] = None
@@ -136,14 +136,14 @@ class Document(object):
 
     def validate(self):
         data = [(field, getattr(self, name)) for name, field in
-            self._fields.items()]
+                self._fields.items()]
         for field, value in data:
             if isinstance(field, PrimaryKeyField) and value is None:
                 continue
 
             if not field.is_valid(value):
                 raise ValidationError('%s is of wrong type %s' %
-                    (field.__class__.__name__, type(value)))
+                                      (field.__class__.__name__, type(value)))
 
     def save(self):
         if not self._dirty:
