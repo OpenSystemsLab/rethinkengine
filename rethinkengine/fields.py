@@ -121,13 +121,13 @@ class DateField(BaseField):
 
 class DateTimeField(BaseField):
     def is_valid(self, value):
-        return True
+        return (value is None) or (isinstance(value, datetime.datetime))
 
     def to_rethink(self, value):
-        if not value.tzinfo:
-            import pytz
-            value = pytz.utc.localize(value)
-        return value
+        if isinstance(value, datetime.datetime):
+            return value.isoformat() if value.isoformat() else value.isoformat()+'+00:00'
+        else:
+            return None
 
 
 class ReferenceField(BaseField):
@@ -147,4 +147,8 @@ class ReferenceField(BaseField):
         return self.document_type(id=value).get()
 
     def to_rethink(self, value):
-        return value.id
+        from document import Document
+        if isinstance(value, Document):
+            return value.id
+        else:
+            return None

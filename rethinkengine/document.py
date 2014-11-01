@@ -189,6 +189,6 @@ class Document(object):
             if key == self.Meta.primary_key_field and value is None:
                 continue
 
-            doc[key] = field_obj.to_rethink(value)
+            doc[key] = None if not value else field_obj.to_rethink(value)
 
         return doc
