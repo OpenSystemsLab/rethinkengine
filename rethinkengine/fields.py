@@ -1,5 +1,6 @@
 import re
 import datetime
+import pytz
 
 __all__ = ['BaseField', 'ObjectIdField', 'StringField',
            'IntegerField', 'FloatField', 'ListField',
@@ -125,7 +126,9 @@ class DateTimeField(BaseField):
 
     def to_rethink(self, value):
         if isinstance(value, datetime.datetime):
-            return value.isoformat() if value.isoformat() else value.isoformat()+'+00:00'
+            if not value.tzinfo:
+                value = pytz.utc.localize(value)
+            return value
         else:
             return None
 
@@ -141,14 +144,14 @@ class ReferenceField(BaseField):
         super(ReferenceField, self).__init__(**kwargs)
 
     def is_valid(self, value):
-        return ObjectIdField.is_valid(value)
+        return ObjectIdField().is_valid(value)
 
     def to_python(self, value):
         return self.document_type(id=value).get()
 
     def to_rethink(self, value):
         from document import Document
-        if isinstance(value, Document):
+        if issubclass(value, Document):
             return value.id
         else:
             return None
