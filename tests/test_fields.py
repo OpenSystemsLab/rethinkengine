@@ -5,34 +5,34 @@ import unittest2 as unittest
 
 class PrimaryKeyFieldTestCase(unittest.TestCase):
     def test_default(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertEqual(f._default, None)
 
         with self.assertRaises(TypeError):
-            PrimaryKeyField(default='')
+            ObjectIdField(default='')
 
     def test_required(self):
         with self.assertRaises(TypeError):
-            PrimaryKeyField(required=False)
+            ObjectIdField(required=False)
 
     def test_is_valid(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertTrue(f.is_valid('cdc14784-3327-492b-a1db-ad8a3b8abcef'))
 
     def test_too_short(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertFalse(f.is_valid('cdc14784-3327-492b-a1db-ad8a3b8abce'))
 
     def test_too_long(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertFalse(f.is_valid('cdc14784-3327-492b-a1db-ad8a3b8abcefa'))
 
     def test_wrong_chars(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertFalse(f.is_valid('zzzzzzzz-3327-492b-a1db-ad8a3b8abcef'))
 
     def test_wrong_type(self):
-        f = PrimaryKeyField()
+        f = ObjectIdField()
         self.assertFalse(f.is_valid(123))
 
 

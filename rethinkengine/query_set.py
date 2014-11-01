@@ -1,22 +1,13 @@
 from rethinkengine.connection import get_conn
-from rethinkengine.fields import PrimaryKeyField
+from rethinkengine.fields import ObjectIdField
+from rethinkengine.errors import InvalidQueryError, DoesNotExist
 
 import rethinkdb as r
 
+__all__ = ['QuerySet', 'QuerySetManager']
+
 
 REPR_SIZE = 20
-
-
-class InvalidQueryError(Exception):
-    pass
-
-
-class MultipleObjectsReturned(Exception):
-    pass
-
-
-class DoesNotExist(Exception):
-    pass
 
 
 class QuerySet(object):
@@ -91,8 +82,8 @@ class QuerySet(object):
         doc._dirty = False
         for name, value in self._cursor.next().items():
             if name == self._document.Meta.primary_key_field:
-                doc._fields['pk'] = PrimaryKeyField()
-                doc._data['pk'] = value
+                doc._fields['id'] = ObjectIdField()
+                doc._data['id'] = value
             if name not in doc._fields:
                 continue
             # Bypass __setattr__ to prevent _dirty from being set to True
@@ -122,7 +113,7 @@ class QuerySet(object):
             if k in self._filter:
                 message = "Encountered '%s' more than once in query" % k
                 raise InvalidQueryError(message)
-            elif k == 'pk':
+            elif k == 'id':
                 k = self._document.Meta.primary_key_field
             self._filter[k] = v
         return self.__call__()
@@ -191,7 +182,7 @@ class QuerySet(object):
     def order_by(self, *args):
         # Replace -pk and pk with actual primary key field
         self._order_by = tuple([a.replace(a.lstrip('-'),
-            self._document.Meta.primary_key_field) if a in ('pk', '-pk') else
+            self._document.Meta.primary_key_field) if a in ('id', '-id') else
             a for a in args])
         return self.__call__()
 

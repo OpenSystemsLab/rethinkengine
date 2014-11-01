@@ -1,5 +1,5 @@
 from .. import Foo
-from rethinkengine import *
+from rethinkengine import ValidationError
 
 import unittest2 as unittest
 

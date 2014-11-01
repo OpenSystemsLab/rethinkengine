@@ -1,6 +1,6 @@
 from . import DB_NAME
 from random import choice
-from rethinkengine.connection import *
+from rethinkengine.connection import db_drop, connect, disconnect, get_conn, db_list, ConnectionError
 from string import ascii_letters
 
 import rethinkdb

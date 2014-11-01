@@ -54,11 +54,11 @@ class OrderByTestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_order_by_pk(self):
-        result = [f.pk for f in Foo.objects.all().order_by('pk')]
+        result = [f.id for f in Foo.objects.all().order_by('id')]
         result_sorted = sorted(result)
         self.assertEqual(result, result_sorted)
 
     def test_order_by_pk_reverse(self):
-        result = [f.pk for f in Foo.objects.all().order_by('-pk')]
+        result = [f.id for f in Foo.objects.all().order_by('-id')]
         result_sorted = sorted(result, reverse=True)
         self.assertEqual(result, result_sorted)

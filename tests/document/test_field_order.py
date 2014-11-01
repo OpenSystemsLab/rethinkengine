@@ -1,4 +1,4 @@
-from rethinkengine import *
+from rethinkengine import Document, StringField, IntegerField, ListField, DictField, BooleanField
 
 import unittest2 as unittest
 
@@ -13,7 +13,7 @@ class Foo(Document):
 
 class FieldOrderTestCase(unittest.TestCase):
     def setUp(self):
-        self.fields = iter(['pk'] + ['x' + str(i) for i in range(1, 6)])
+        self.fields = iter(['id'] + ['x' + str(i) for i in range(1, 6)])
 
     def test_field_order_iter(self):
         f = Foo()

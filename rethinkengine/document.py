@@ -4,20 +4,15 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from rethinkengine.connection import get_conn
-from rethinkengine.fields import BaseField, PrimaryKeyField
-from rethinkengine.query_set import QuerySetManager, DoesNotExist, \
-    MultipleObjectsReturned
+from rethinkengine.fields import BaseField, ObjectIdField
+from rethinkengine.query_set import QuerySetManager
+from rethinkengine.errors import DoesNotExist, \
+    MultipleObjectsReturned, RqlOperationError, ValidationError
 
 import inspect
 import rethinkdb as r
 
-
-class ValidationError(Exception):
-    pass
-
-
-class RqlOperationError(Exception):
-    pass
+__all__ = ['BaseDocument', 'Document']
 
 
 class Meta(object):
@@ -41,7 +36,7 @@ class BaseDocument(type):
             ),
             key=lambda i: i[1]._creation_order)
         new_class._fields = attrs.get('_fields', OrderedDict())
-        new_class._fields['pk'] = PrimaryKeyField()
+        new_class._fields['id'] = ObjectIdField()
         for field_name, field in fields:
             new_class._fields[field_name] = field
             delattr(new_class, field_name)
@@ -135,15 +130,15 @@ class Document(object):
         return r.table_drop(cls.Meta.table_name).run(get_conn())
 
     def validate(self):
-        data = [(field, getattr(self, name)) for name, field in
+        data = [(name, field, getattr(self, name)) for name, field in
                 self._fields.items()]
-        for field, value in data:
-            if isinstance(field, PrimaryKeyField) and value is None:
+        for name, field, value in data:
+            if isinstance(field, ObjectIdField) and value is None:
                 continue
 
             if not field.is_valid(value):
-                raise ValidationError('%s is of wrong type %s' %
-                                      (field.__class__.__name__, type(value)))
+                raise ValidationError('Field %s: %s is of wrong type %s' %
+                                      (name, field.__class__.__name__, type(value)))
 
     def save(self):
         if not self._dirty:
@@ -151,9 +146,9 @@ class Document(object):
         self.validate()
         doc = self._doc
         table = r.table(self.Meta.table_name)
-        if self.pk:
+        if self.id:
             # TODO: implement atomic updates instead of updating entire doc
-            result = table.get(self.pk).update(doc).run(get_conn())
+            result = table.get(self.id).update(doc).run(get_conn())
         else:
             result = table.insert(doc).run(get_conn())
 
@@ -162,13 +157,13 @@ class Document(object):
 
         self._dirty = False
         if 'generated_keys' in result:
-            self._data['pk'] = result['generated_keys'][0]
+            self._data['id'] = result['generated_keys'][0]
         return True
 
     def delete(self):
         table = r.table(self.Meta.table_name)
-        if self._get_value('pk'):
-            return table.get(self._get_value('pk')).delete().run(get_conn())
+        if self._get_value('id'):
+            return table.get(self._get_value('id')).delete().run(get_conn())
 
     def _get_value(self, field_name):
         return self._data.get(field_name, self._fields[field_name]._default)
@@ -189,7 +184,7 @@ class Document(object):
     def _doc(self):
         doc = {}
         for name, field_obj in self._fields.items():
-            key = self.Meta.primary_key_field if name == 'pk' else name
+            key = self.Meta.primary_key_field if name == 'id' else name
             value = self._get_value(name)
             if key == self.Meta.primary_key_field and value is None:
                 continue

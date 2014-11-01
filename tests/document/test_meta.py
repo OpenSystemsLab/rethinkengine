@@ -1,4 +1,4 @@
-from rethinkengine import *
+from rethinkengine import Document
 
 import rethinkdb as r
 import unittest2 as unittest
@@ -28,7 +28,7 @@ class MetaTestCase(unittest.TestCase):
         t = Test()
         t.save()
         obj = Test.objects.all()[0]
-        self.assertTrue(hasattr(obj, 'pk'))
+        self.assertTrue(hasattr(obj, 'id'))
         self.assertIn('foo', obj._doc)
 
     def test_primary_key_filter(self):
@@ -36,10 +36,10 @@ class MetaTestCase(unittest.TestCase):
         # primary_key_field to something else
         t = Test()
         t.save()
-        pk = t.pk
+        pk = t.id
 
         # Should not raise error
-        Test.objects.filter(pk=pk)
+        Test.objects.filter(id=pk)
 
     def test_table_name(self):
         class Test_TABLE_123(Document):

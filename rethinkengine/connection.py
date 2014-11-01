@@ -1,14 +1,12 @@
 import rethinkdb as r
+from errors import ConnectionError
 
+__all__ = ['connect', 'disconnect', 'get_conn']
 
 DEFAULT_DATABASE_NAME = 'default'
 
 _connections = {}
 _active_alias = None
-
-
-class ConnectionError(Exception):
-    pass
 
 
 # Shorthand function to fall back on either the last used db, or default

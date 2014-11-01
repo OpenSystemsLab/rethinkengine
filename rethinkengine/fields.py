@@ -1,11 +1,16 @@
 import re
 import datetime
 
+__all__ = ['BaseField', 'ObjectIdField', 'StringField',
+           'IntegerField', 'FloatField', 'ListField',
+           'DictField', 'BooleanField', 'DateField',
+           'DateTimeField', 'ReferenceField']
+
 
 class BaseField(object):
     _creation_counter = 0
 
-    def __init__(self, required=True, default=None):
+    def __init__(self, required=False, default=None, **kwargs):
         self._creation_order = self._creation_counter
         BaseField._creation_counter += 1
         self._required = required
@@ -26,7 +31,7 @@ class BaseField(object):
         return False
 
 
-class PrimaryKeyField(BaseField):
+class ObjectIdField(BaseField):
     rx = r'^[0-9a-f]{8}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{4}\-[0-9a-f]{12}$'
 
     def __init__(self):
@@ -117,3 +122,29 @@ class DateField(BaseField):
 class DateTimeField(BaseField):
     def is_valid(self, value):
         return True
+
+    def to_rethink(self, value):
+        if not value.tzinfo:
+            import pytz
+            value = pytz.utc.localize(value)
+        return value
+
+
+class ReferenceField(BaseField):
+
+    def __init__(self, document_type, **kwargs):
+        from document import Document
+        if not issubclass(document_type, Document):
+                raise ValueError('Argument to ReferenceField constructor must be a '
+                                 'Document class')
+        self.document_type = document_type
+        super(ReferenceField, self).__init__(**kwargs)
+
+    def is_valid(self, value):
+        return ObjectIdField.is_valid(value)
+
+    def to_python(self, value):
+        return self.document_type(id=value).get()
+
+    def to_rethink(self, value):
+        return value.id

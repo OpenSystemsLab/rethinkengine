@@ -31,13 +31,13 @@ class DocumentTestCase(unittest.TestCase):
 
     def test_iter(self):
         f = Foo(name='foo', number=42)
-        self.assertEqual(f.next(), 'pk')
+        self.assertEqual(f.next(), 'id')
         self.assertEqual(f.next(), 'name')
         self.assertEqual(f.next(), 'number')
 
     def test_items(self):
         items = dict(Foo(name='foo', number=42).items())
-        del items['pk']
+        del items['id']
         self.assertEqual(items, {'name': 'foo', 'number': 42})
 
     def test_is_dirty_new(self):
@@ -66,7 +66,7 @@ class DocumentTestCase(unittest.TestCase):
         # Insert a new document and save its pk
         f = Foo(name='John')
         f.save()
-        pk = f.pk
+        pk = f.id
 
         # Update the doc
         f.name = 'Jack'
@@ -74,7 +74,7 @@ class DocumentTestCase(unittest.TestCase):
 
         # Retrieve doc and make sure pks are equal
         f = Foo.objects.get(name='Jack')
-        self.assertEqual(f.pk, pk)
+        self.assertEqual(f.id, pk)
 
     def test_rql_operation_error(self):
         user1 = User(email='contact1@example.com')
