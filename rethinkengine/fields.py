@@ -87,12 +87,18 @@ class ListField(BaseField):
                     return False
         return True
 
+    def to_python(self, value):
+        return value or []
+
 
 class DictField(BaseField):
     def is_valid(self, value):
         if super(DictField, self).is_valid(value) is True:
             return True
         return isinstance(value, dict)
+
+    def to_python(self, value):
+        return value or {}
 
 
 class BooleanField(BaseField):
@@ -151,7 +157,7 @@ class ReferenceField(BaseField):
 
     def to_rethink(self, value):
         from document import Document
-        if issubclass(value, Document):
+        if issubclass(type(value), Document):
             return value.id
         else:
             return None
