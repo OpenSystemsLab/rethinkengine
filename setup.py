@@ -23,7 +23,6 @@ setup(
     ],
     install_requires=[
         'rethinkdb',
-        'ordereddict',
         'pytz'
     ],
 )
