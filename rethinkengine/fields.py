@@ -142,6 +142,7 @@ class DateTimeField(BaseField):
 class ReferenceField(BaseField):
 
     def __init__(self, document_type, **kwargs):
+        #TODO: Need param document_type is string
         from document import Document
         if not issubclass(document_type, Document):
                 raise ValueError('Argument to ReferenceField constructor must be a '
@@ -150,14 +151,22 @@ class ReferenceField(BaseField):
         super(ReferenceField, self).__init__(**kwargs)
 
     def is_valid(self, value):
-        return ObjectIdField().is_valid(value)
+        from document import Document
+        flag = True
+        if self._required and value is None:
+            flag = False
+        return ObjectIdField().is_valid(value.id) if issubclass(type(value), Document) else flag
 
     def to_python(self, value):
-        return self.document_type(id=value).get()
+        print value
+        from document import Document
+        return value if issubclass(type(value), Document) else self.document_type.objects.get(id=value)
 
     def to_rethink(self, value):
         from document import Document
         if issubclass(type(value), Document):
             return value.id
+        elif value:
+            return value
         else:
             return None

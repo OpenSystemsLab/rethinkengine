@@ -84,10 +84,15 @@ class QuerySet(object):
             if name == self._document.Meta.primary_key_field:
                 doc._fields['id'] = ObjectIdField()
                 doc._data['id'] = value
-            if name not in doc._fields:
-                continue
+            field_name = name
+            if field_name not in doc._fields:
+                #ReferenceField
+                if field_name.endswith('_id') and field_name[:-3] in doc._fields:
+                    field_name = field_name[:-3]
+                else:
+                    continue
             # Bypass __setattr__ to prevent _dirty from being set to True
-            doc._data[name] = doc._to_python(name, value)
+            doc._data[name] = doc._to_python(field_name, value)
 
         return doc
 
