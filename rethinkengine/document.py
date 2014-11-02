@@ -1,10 +1,10 @@
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+import pytz
+import datetime
+
+from collections import OrderedDict
 
 from rethinkengine.connection import get_conn
-from rethinkengine.fields import BaseField, ObjectIdField
+from rethinkengine.fields import BaseField, ObjectIdField, ReferenceField
 from rethinkengine.query_set import QuerySetManager
 from rethinkengine.errors import DoesNotExist, \
     MultipleObjectsReturned, RqlOperationError, ValidationError
@@ -84,8 +84,12 @@ class Document(object):
     def __setattr__(self, key, value):
         field = self._fields.get(key, None)
         if field is not None:
-            if self._get_value(key) != value:
-                self._dirty = True
+            #Fix timezone for datetime
+            if isinstance(value, datetime.datetime) and not value.tzinfo:
+                pytz.utc.localize(value)
+            #Add _id if field if ReferenceField
+            if isinstance(self._fields.get(key), ReferenceField):
+                key += '_id'
             self._data[key] = value
         super(Document, self).__setattr__(key, value)
 
@@ -166,7 +170,10 @@ class Document(object):
             return table.get(self._get_value('id')).delete().run(get_conn())
 
     def _get_value(self, field_name):
-        return self._data.get(field_name, self._fields[field_name]._default)
+        key = field_name
+        if isinstance(self._fields[field_name], ReferenceField):
+            key += '_id'
+        return self._data.get(key, self._fields[field_name]._default)
 
     def _to_python(self, field_name, value):
         if field_name in self._fields:
@@ -188,6 +195,8 @@ class Document(object):
             value = self._get_value(name)
             if key == self.Meta.primary_key_field and value is None:
                 continue
+            if isinstance(field_obj, ReferenceField):
+                key += '_id'
 
             doc[key] = None if not value else field_obj.to_rethink(value)
 
