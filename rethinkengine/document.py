@@ -90,6 +90,8 @@ class Document(object):
             #Add _id if field if ReferenceField
             if isinstance(self._fields.get(key), ReferenceField):
                 key += '_id'
+            if self._get_value(key) != value:
+                self._dirty = True
             self._data[key] = value
         super(Document, self).__setattr__(key, value)
 
