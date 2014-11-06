@@ -86,10 +86,11 @@ class Document(object):
         if field is not None:
             #Fix timezone for datetime
             if isinstance(value, datetime.datetime) and not value.tzinfo:
-                pytz.utc.localize(value)
+                value = pytz.utc.localize(value)
             #Add _id if field if ReferenceField
             if isinstance(self._fields.get(key), ReferenceField):
                 key += '_id'
+            print self._get_value(key), value
             if self._get_value(key) != value:
                 self._dirty = True
             self._data[key] = value
