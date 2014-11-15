@@ -87,12 +87,11 @@ class Document(object):
             #Fix timezone for datetime
             if isinstance(value, datetime.datetime) and not value.tzinfo:
                 value = pytz.utc.localize(value)
+            if self._get_value(key) != value:
+                self._dirty = True
             #Add _id if field if ReferenceField
             if isinstance(self._fields.get(key), ReferenceField):
                 key += '_id'
-            print self._get_value(key), value
-            if self._get_value(key) != value:
-                self._dirty = True
             self._data[key] = value
         super(Document, self).__setattr__(key, value)
 
