@@ -190,8 +190,20 @@ class Document(object):
         if not self._dirty:
             return True
         self.validate()
+
+        is_update = False
+        try:
+            if self.id:
+                is_update = True
+                self._pre_update()
+            else:
+                self._pre_save()
+        except AttributeError:
+            pass
+
         doc = self._doc
         table = r.table(self.Meta.table_name)
+
         if self.id:
             # TODO: implement atomic updates instead of updating entire doc
             result = table.get(self.id).update(doc).run(get_conn())
@@ -204,12 +216,31 @@ class Document(object):
         self._dirty = False
         if 'generated_keys' in result:
             self._data['id'] = result['generated_keys'][0]
+
+        try:
+            if is_update:
+                self._post_update()
+            else:
+                self._post_save()
+        except AttributeError:
+            pass
+
         return True
 
     def delete(self):
         table = r.table(self.Meta.table_name)
         if self._get_value('id'):
-            return table.get(self._get_value('id')).delete().run(get_conn())
+            try:
+                self._pre_delete()
+            except AttributeError:
+                pass
+            result = table.get(self._get_value('id')).delete().run(get_conn())
+            try:
+                self._post_delete()
+            except AttributeError:
+                pass
+
+            return result
 
     def _get_value(self, field_name):
         key = field_name

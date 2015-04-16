@@ -1,6 +1,4 @@
-from .. import Foo
-from rethinkengine.connection import connect, disconnect, ConnectionError
-import rethinkdb as r
+from rethinkengine.connection import connect
 import unittest2 as unittest
 from rethinkengine.document import Document
 from rethinkengine.fields import *
@@ -11,6 +9,7 @@ class MyUser(Document):
     last_name = StringField(required=False)
     roles = ListField()
     age = IntegerField(required=False)
+
 
 class CreateIndexTestCase(unittest.TestCase):
     def setUp(self):
