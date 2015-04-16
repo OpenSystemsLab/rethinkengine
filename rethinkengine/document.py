@@ -119,6 +119,42 @@ class Document(object):
         return [(k, self._get_value(k)) for k in self._fields]
 
     @classmethod
+    def index_create(cls, name, fields=None, mutil=False):
+
+        if fields is None:
+            fields = []
+        if mutil is None:
+            mutil = False
+
+        table = r.table(cls.Meta.table_name)
+        if len(fields) is 0 and not mutil:
+            return table.index_create(name).run(get_conn())
+
+        if len(fields) > 0:
+            return table.index_create(name, [r.row[x] for x in fields]).run(get_conn())
+
+        if mutil:
+            return table.index_create(name, multi=True).run(get_conn())
+
+        return False
+
+    @classmethod
+    def index_drop(cls, name):
+        return r.table(cls.Meta.table_name).index_drop(name).run(get_conn())
+
+    @classmethod
+    def index_list(cls):
+        return r.table(cls.Meta.table_name).index_list().run(get_conn())
+
+    @classmethod
+    def index_wait(cls, name):
+        return r.table(cls.Meta.table_name).index_wait(name).run(get_conn())
+
+    @classmethod
+    def index_status(cls, name):
+        return r.table(cls.Meta.table_name).index_status(name).run(get_conn())
+
+    @classmethod
     def table_create(cls, if_not_exists=True):
         if (
             if_not_exists and
@@ -145,6 +181,10 @@ class Document(object):
             if not field.is_valid(value):
                 raise ValidationError('Field %s: %s is of wrong type %s' %
                                       (name, field.__class__.__name__, type(value)))
+    @classmethod
+    def get_all(cls, *args, **kwargs):
+        result = r.table(cls.Meta.table_name).get_all(*args, **kwargs).run(get_conn())
+        return [cls(**o) for o in result]
 
     def save(self):
         if not self._dirty:
