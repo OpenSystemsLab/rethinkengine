@@ -35,11 +35,17 @@ class BaseDocument(type):
                 lambda o: isinstance(o, BaseField)
             ),
             key=lambda i: i[1]._creation_order)
+
         new_class._fields = attrs.get('_fields', OrderedDict())
-        new_class._fields['id'] = ObjectIdField()
         for field_name, field in fields:
             new_class._fields[field_name] = field
             delattr(new_class, field_name)
+
+        if 'id' not in new_class._fields:
+            new_class._fields['id'] = ObjectIdField()
+
+
+
         new_class.objects = QuerySetManager()
 
         # Merge exceptions
@@ -175,7 +181,7 @@ class Document(object):
         data = [(name, field, getattr(self, name)) for name, field in
                 self._fields.items()]
         for name, field, value in data:
-            if isinstance(field, ObjectIdField) and value is None:
+            if name == self.Meta.primary_key_field and value is None:
                 continue
 
             if not field.is_valid(value):
