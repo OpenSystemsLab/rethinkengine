@@ -204,7 +204,7 @@ class Document(object):
         doc = self._doc
         table = r.table(self.Meta.table_name)
 
-        if self.id:
+        if is_update:
             # TODO: implement atomic updates instead of updating entire doc
             result = table.get(self.id).update(doc).run(get_conn())
         else:
