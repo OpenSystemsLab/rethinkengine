@@ -34,9 +34,12 @@ class Signaling:
 
     @classmethod
     def __append_callback(cls, e, f):
-        if e not in cls.__signals:
-            cls.__signals[e] = []
-        cls.__signals[e].append(f)
+        model_name = cls.Meta.table_name
+        if model_name not in cls.__signals:
+            cls.__signals[model_name] = {}
+        if e not in cls.__signals[model_name]:
+            cls.__signals[model_name][e] = []
+        cls.__signals[model_name][e].append(f)
 
     def _pre_save(self):
         self.__trigger_event('pre_save')
@@ -57,8 +60,12 @@ class Signaling:
         self.__trigger_event('post_delete')
 
     def __trigger_event(self, e):
-        if e in self.__class__.__signals:
-            for cb in self.__class__.__signals[e]:
+        model_name = self.Meta.table_name
+        if model_name not in self.__signals:
+            return None
+
+        if e in self.__class__.__signals[model_name]:
+            for cb in self.__class__.__signals[model_name][e]:
                 try:
                     cb(self)
                 except Exception as e:
