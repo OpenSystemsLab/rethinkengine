@@ -151,11 +151,10 @@ class ReferenceField(BaseField):
         super(ReferenceField, self).__init__(**kwargs)
 
     def is_valid(self, value):
-        from document import Document
         flag = True
         if self._required and value is None:
             flag = False
-        return ObjectIdField().is_valid(value.id) if issubclass(type(value), Document) else flag
+        return flag
 
     def to_python(self, value):
         print value
