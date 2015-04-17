@@ -64,8 +64,8 @@ class Signaling:
         if model_name not in self.__signals:
             return None
 
-        if e in self.__class__.__signals[model_name]:
-            for cb in self.__class__.__signals[model_name][e]:
+        if e in self.__signals[model_name]:
+            for cb in self.__signals[model_name][e]:
                 try:
                     cb(self)
                 except Exception as e:
