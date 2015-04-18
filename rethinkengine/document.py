@@ -246,7 +246,7 @@ class Document(object):
         key = field_name
         if isinstance(self._fields[field_name], ReferenceField):
             key += '_id'
-        return self._data.get(key, self._fields[field_name]._default)
+        return self._data.get(key) or self._fields[field_name]._default
 
     def _to_python(self, field_name, value):
         if field_name in self._fields:
