@@ -11,4 +11,4 @@ __all__ = [
     list(connection.__all__) + list(document.__all__) +
     list(fields.__all__) + list(errors.__all__)]
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'

@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='rethinkengine',
-    version='0.1.0',
+    version='0.1.1',
     author='Bas Wind',
     author_email='mailtobwind@gmail.com',
     description='RethinkDB Object-Document Mapper',

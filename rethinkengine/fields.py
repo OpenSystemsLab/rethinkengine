@@ -157,7 +157,6 @@ class ReferenceField(BaseField):
         return flag
 
     def to_python(self, value):
-        print value
         from document import Document
         return value if issubclass(type(value), Document) else self.document_type.objects.get(id=value)
 
