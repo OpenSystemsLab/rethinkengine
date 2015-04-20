@@ -66,7 +66,7 @@ Retrieving data
         for field, value in u.items():
             print field, value
 
-.. |Build Status| image:: https://travis-ci.org/bwind/rethinkengine.png?branch=master
-   :target: https://travis-ci.org/bwind/rethinkengine
-.. |Coverage Status| image:: https://coveralls.io/repos/bwind/rethinkengine/badge.png
-   :target: https://coveralls.io/r/bwind/rethinkengine
+.. |Build Status| image:: https://travis-ci.org/rgv151/rethinkengine.png?branch=master
+   :target: https://travis-ci.org/rgv151/rethinkengine
+.. |Coverage Status| image:: https://coveralls.io/repos/rgv151/rethinkengine/badge.png
+   :target: https://coveralls.io/r/rgv151/rethinkengine
