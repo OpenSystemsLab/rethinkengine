@@ -1,2 +1,3 @@
 rethinkdb
 pytz
+inflector

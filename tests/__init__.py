@@ -15,8 +15,7 @@ class Foo(Document):
 
 
 class User(Document):
-    class Meta(object):
-        primary_key_field = 'email'
+    __primary_key__ = 'email'
 
     email = StringField()
     born_date = DateField()

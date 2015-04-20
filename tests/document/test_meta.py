@@ -6,8 +6,7 @@ import unittest2 as unittest
 
 class Test(Document):
     pass
-    class Meta:
-        primary_key_field = 'foo'
+    __primary_key__ = 'foo'
 
 
 class MetaTestCase(unittest.TestCase):
@@ -44,4 +43,4 @@ class MetaTestCase(unittest.TestCase):
     def test_table_name(self):
         class Test_TABLE_123(Document):
             pass
-        self.assertEqual(Test_TABLE_123.Meta.table_name, 'test_table_123')
+        self.assertEqual(Test_TABLE_123.__table_name__, 'test_table_123s')

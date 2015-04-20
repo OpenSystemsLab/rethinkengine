@@ -29,11 +29,11 @@ class QuerySet(object):
         return self._cursor_iter
 
     def _build_cursor_obj(self):
-        self._cursor_obj = r.table(self._document.Meta.table_name)
+        self._cursor_obj = r.table(self._document.__table_name__)
         if self._filter:
             self._cursor_obj = self._cursor_obj.filter(self._filter)
 
-        order_by = self._order_by or self._document.Meta.order_by
+        order_by = self._order_by or self._document.__order_by__
         if order_by:
             order_by_r = []
             for field in order_by:
@@ -81,7 +81,7 @@ class QuerySet(object):
         doc = self._document()
         doc._dirty = False
         for name, value in self._cursor.next().items():
-            if name == self._document.Meta.primary_key_field:
+            if name == self._document.__primary_key__:
                 doc._fields['id'] = ObjectIdField()
                 doc._data['id'] = value
             field_name = name
@@ -119,12 +119,12 @@ class QuerySet(object):
                 message = "Encountered '%s' more than once in query" % k
                 raise InvalidQueryError(message)
             elif k == 'id':
-                k = self._document.Meta.primary_key_field
+                k = self._document.__primary_key__
             self._filter[k] = v
         return self.__call__()
 
     def insert(self, batch):
-        self._cursor_obj = r.table(self._document.Meta.table_name)
+        self._cursor_obj = r.table(self._document.__table_name__)
         map(lambda i: i.validate(), batch)
         result = self._cursor_obj.insert(map(lambda i: i._doc, batch)).run(get_conn())
         return result.get("generated_keys", [])
@@ -187,7 +187,7 @@ class QuerySet(object):
     def order_by(self, *args):
         # Replace -pk and pk with actual primary key field
         self._order_by = tuple([a.replace(a.lstrip('-'),
-            self._document.Meta.primary_key_field) if a in ('id', '-id') else
+            self._document.__primary_key__) if a in ('id', '-id') else
             a for a in args])
         return self.__call__()
 

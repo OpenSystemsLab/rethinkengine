@@ -1,5 +1,6 @@
 import pytz
 import datetime
+from inflector import Inflector
 
 from collections import OrderedDict
 
@@ -13,12 +14,6 @@ import inspect
 import rethinkdb as r
 
 __all__ = ['BaseDocument', 'Document']
-
-
-class Meta(object):
-    order_by = None
-    primary_key_field = 'id'
-
 
 class BaseDocument(type):
     def __new__(mcs, name, bases, attrs):
@@ -48,30 +43,18 @@ class BaseDocument(type):
             exc = type(c.__name__, (c,), {'__module__': name})
             setattr(new_class, c.__name__, exc)
 
-        # Merge Meta
-        m_name = Meta.__name__
-
-        # Get user defined Meta data
-        meta_data = {}
-        if hasattr(new_class, m_name):
-            meta_data = dict([(k, getattr(new_class.Meta, k)) for k in
-                              dir(new_class.Meta) if not k.startswith('_')])
-
-        # Merge Meta class and set user defined data
-        meta = type(m_name, (Meta,), {'__module__': name})
-        setattr(new_class, m_name, meta)
-        for k, v in meta_data.items():
-            setattr(new_class.Meta, k, v)
-
         # Populate table_name if not privided
-        if 'table_name' not in meta_data:
-            new_class.Meta.table_name = name.lower()
-
+        if new_class.__table_name__ is None:
+            new_class.__table_name__ = Inflector().pluralize(name).lower()
         return new_class
 
 
 class Document(object):
     __metaclass__ = BaseDocument
+    
+    __table_name__ = None
+    __primary_key__ = 'id'
+    __order_by__ = None
 
     def __init__(self, **kwargs):
         super(Document, self).__init__()
@@ -126,7 +109,7 @@ class Document(object):
         if mutil is None:
             mutil = False
 
-        table = r.table(cls.Meta.table_name)
+        table = r.table(cls.__table_name__)
         if len(fields) is 0 and not mutil:
             return table.index_create(name).run(get_conn())
 
@@ -140,36 +123,36 @@ class Document(object):
 
     @classmethod
     def index_drop(cls, name):
-        return r.table(cls.Meta.table_name).index_drop(name).run(get_conn())
+        return r.table(cls.__table_name__).index_drop(name).run(get_conn())
 
     @classmethod
     def index_list(cls):
-        return r.table(cls.Meta.table_name).index_list().run(get_conn())
+        return r.table(cls.__table_name__).index_list().run(get_conn())
 
     @classmethod
     def index_wait(cls, name):
-        return r.table(cls.Meta.table_name).index_wait(name).run(get_conn())
+        return r.table(cls.__table_name__).index_wait(name).run(get_conn())
 
     @classmethod
     def index_status(cls, name):
-        return r.table(cls.Meta.table_name).index_status(name).run(get_conn())
+        return r.table(cls.__table_name__).index_status(name).run(get_conn())
 
     @classmethod
     def table_create(cls, if_not_exists=True):
         if (
             if_not_exists and
-            (cls.Meta.table_name in r.table_list().run(get_conn()))
+            (cls.__table_name__ in r.table_list().run(get_conn()))
         ):
             return
 
         return r.table_create(
-            cls.Meta.table_name,
-            primary_key=cls.Meta.primary_key_field
+            cls.__table_name__,
+            primary_key=cls.__primary_key__
         ).run(get_conn())
 
     @classmethod
     def table_drop(cls):
-        return r.table_drop(cls.Meta.table_name).run(get_conn())
+        return r.table_drop(cls.__table_name__).run(get_conn())
 
     def validate(self):
         data = [(name, field, getattr(self, name)) for name, field in
@@ -183,7 +166,7 @@ class Document(object):
                                       (name, field.__class__.__name__, type(value)))
     @classmethod
     def get_all(cls, *args, **kwargs):
-        result = r.table(cls.Meta.table_name).get_all(*args, **kwargs).run(get_conn())
+        result = r.table(cls.__table_name__).get_all(*args, **kwargs).run(get_conn())
         return [cls(**o) for o in result]
 
     def save(self):
@@ -202,7 +185,7 @@ class Document(object):
             pass
 
         doc = self._doc
-        table = r.table(self.Meta.table_name)
+        table = r.table(self.__table_name__)
 
         if is_update:
             # TODO: implement atomic updates instead of updating entire doc
@@ -228,7 +211,7 @@ class Document(object):
         return True
 
     def delete(self):
-        table = r.table(self.Meta.table_name)
+        table = r.table(self.__table_name__)
         if self._get_value('id'):
             try:
                 self._pre_delete()
@@ -264,9 +247,9 @@ class Document(object):
     def _doc(self):
         doc = {}
         for name, field_obj in self._fields.items():
-            key = self.Meta.primary_key_field if name == 'id' else name
+            key = self.__primary_key__ if name == 'id' else name
             value = self._get_value(name)
-            if key == self.Meta.primary_key_field and value is None:
+            if key == self.__primary_key__ and value is None:
                 continue
             if isinstance(field_obj, ReferenceField):
                 key += '_id'
