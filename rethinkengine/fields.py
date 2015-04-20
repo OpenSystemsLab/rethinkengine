@@ -145,7 +145,7 @@ class ReferenceField(BaseField):
         #TODO: Need param document_type is string
         from document import Document
         if not issubclass(document_type, Document):
-                raise ValueError('Argument to ReferenceField constructor must be a '
+                raise ValueError('Argument to ReferenceField constructor must be a subclass of '
                                  'Document class')
         self.document_type = document_type
         super(ReferenceField, self).__init__(**kwargs)
@@ -157,12 +157,10 @@ class ReferenceField(BaseField):
         return flag
 
     def to_python(self, value):
-        from document import Document
-        return value if issubclass(type(value), Document) else self.document_type.objects.get(id=value)
+        return value if isinstance(value, self.document_type) else self.document_type.objects.get(id=value)
 
     def to_rethink(self, value):
-        from document import Document
-        if issubclass(type(value), Document):
+        if isinstance(value, self.document_type):
             return value.id
         elif value:
             return value
