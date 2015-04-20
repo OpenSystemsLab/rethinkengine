@@ -158,6 +158,8 @@ class Document(object):
         data = [(name, field, getattr(self, name)) for name, field in
                 self._fields.items()]
         for name, field, value in data:
+            if name == 'id' and self.__primary_key__ != 'id':
+                continue
             if isinstance(field, ObjectIdField) and value is None:
                 continue
 
