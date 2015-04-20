@@ -34,7 +34,7 @@ class Signaling:
 
     @classmethod
     def __append_callback(cls, e, f):
-        model_name = cls.Meta.table_name
+        model_name = cls.__table_name__
         if model_name not in cls.__signals:
             cls.__signals[model_name] = {}
         if e not in cls.__signals[model_name]:
@@ -60,7 +60,7 @@ class Signaling:
         self.__trigger_event('post_delete')
 
     def __trigger_event(self, e):
-        model_name = self.Meta.table_name
+        model_name = self.__table_name__
         if model_name not in self.__signals:
             return None
 
